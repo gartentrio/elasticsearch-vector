@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
-    <name>elasticsearch-binary-vector-scoring</name>
-    <groupId>com.liorkn.elasticsearch</groupId>
-    <artifactId>elasticsearch-binary-vector-scoring</artifactId>
-    <version>7.1.0</version>
-    <description>ElasticSearch Plugin for Binary Vector Scoring</description>
+    <name>elasticsearch-vector</name>
+    <groupId>com.github.gartentrio</groupId>
+    <artifactId>elasticsearch-vector</artifactId>
+    <version>${elasticsearch.version}</version>
+    <description>ElasticSearch Vector Plugin</description>
     
     <licenses>
     		<license>
@@ -20,14 +20,10 @@
     
     <properties>
         <!-- define class name for the descriptor file -->
-        <elasticsearch.plugin.classname>com.liorkn.elasticsearch.plugin.VectorScoringPlugin</elasticsearch.plugin.classname>
-
-        <!-- we have custom licence header in this project -->
-        <elasticsearch.license.header>${project.basedir}/src/main/resources/license-check/vector_scoring_license_header.txt</elasticsearch.license.header>
-        <elasticsearch.license.headerDefinition>${project.basedir}/src/main/resources/license-check/license_header_definition.xml</elasticsearch.license.headerDefinition>
+        <elasticsearch.plugin.classname>com.github.gartentrio.elasticsearch.VectorPlugin</elasticsearch.plugin.classname>
 
         <tests.ifNoTests>warn</tests.ifNoTests>
-		<elasticsearch.version>7.1.0</elasticsearch.version>
+		<elasticsearch.version>7.2.0</elasticsearch.version>
         <commons-io.version>2.4</commons-io.version>
         <httpcore.version>4.4.8</httpcore.version>
         <junit.version>4.12</junit.version>
