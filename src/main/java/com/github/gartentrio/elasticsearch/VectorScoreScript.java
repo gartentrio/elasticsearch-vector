@@ -1,0 +1,83 @@
+/*
+ * Licensed to Elasticsearch under one or more contributor
+ * license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright
+ * ownership. Elasticsearch licenses this file to you under
+ * the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package com.github.gartentrio.elasticsearch;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.lucene.index.BinaryDocValues;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.store.ByteArrayDataInput;
+import org.apache.lucene.util.BytesRef;
+import org.elasticsearch.script.ScoreScript;
+import org.elasticsearch.search.lookup.SearchLookup;
+
+public final class VectorScoreScript extends ScoreScript {
+
+	private BinaryDocValues values;
+	private float[] vector;
+	private int doc;
+
+	@SuppressWarnings("unchecked")
+	public VectorScoreScript(Map<String, Object> params, SearchLookup lookup, LeafReaderContext leafContext) throws IOException {
+		super(params, lookup, leafContext);
+
+		String field = (String) params.get("field");
+		if (field == null) {
+			throw new IllegalArgumentException("vector_score script requires field input");
+		}
+		List<Double> vectorList = (List<Double>) params.get("vector");
+		if (vectorList != null) {
+			vector = new float[vectorList.size()];
+			for (int i = 0; i < vector.length; i++) {
+				vector[i] = vectorList.get(i).floatValue();
+			}
+		} else {            	
+			throw new IllegalArgumentException("Must have at 'vector' as a parameter");
+		}
+		values = leafContext.reader().getBinaryDocValues(field);
+	}
+
+	@Override
+	public void setDocument(int doc) {
+		this.doc = doc;
+	}
+
+	@Override
+	public double execute() {
+		try {
+			if (values != null && values.advanceExact(doc)) {
+				BytesRef data = values.binaryValue();
+				ByteArrayDataInput buf = new ByteArrayDataInput(data.bytes, data.offset, data.length);
+				float score = 0;
+				for (int i = 0; i < vector.length; i++) {
+					score += Float.intBitsToFloat(buf.readInt()) * vector[i];
+				}
+				return Math.max(0, score);
+			} else {
+				return 0.0;
+			}
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}      
+}

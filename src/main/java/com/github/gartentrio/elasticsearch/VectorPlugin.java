@@ -11,25 +11,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.liorkn.elasticsearch.plugin;
 
-import com.liorkn.elasticsearch.service.VectorScoringScriptEngineService;
+package com.github.gartentrio.elasticsearch;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.index.mapper.Mapper;
+import org.elasticsearch.plugins.MapperPlugin;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.plugins.ScriptPlugin;
-import org.elasticsearch.script.ScriptEngineService;
-
+import org.elasticsearch.script.ScriptContext;
+import org.elasticsearch.script.ScriptEngine;
 /**
  * This class is instantiated when Elasticsearch loads the plugin for the
  * first time. If you change the name of this plugin, make sure to update
  * src/main/resources/es-plugin.properties file that points to this class.
  */
-public final class VectorScoringPlugin extends Plugin implements ScriptPlugin {
+public final class VectorPlugin extends Plugin implements ScriptPlugin, MapperPlugin {
 
-    public final ScriptEngineService getScriptEngineService(Settings settings) {
-        return new VectorScoringScriptEngineService(settings);
+	@Override
+    public ScriptEngine getScriptEngine(Settings settings, Collection<ScriptContext<?>> contexts) {
+        return new VectorScoreScriptEngine();
     }
-
-
+	
+	@Override
+    public Map<String, Mapper.TypeParser> getMappers() {
+        return Collections.singletonMap(VectorFieldMapper.CONTENT_TYPE, new VectorFieldMapper.TypeParser());
+    }
 }
