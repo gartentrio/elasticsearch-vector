@@ -2,9 +2,10 @@
 
 This Plugin allows you to score Elasticsearch documents based on embedding-vectors, using dot-product.
 
-**Note:** The dot-product ("euclidean distance") between two normalized vectors corresponds to their "cosine similarity".
-Since Elasticsearch 7.0.0 scores produced by a script_score function must be non-negative, so we just truncate negative
-scores to zero.
+**Hint:** The dot-product ("euclidean distance") between two normalized vectors corresponds to their "cosine distance".
+I.e. if you want to calculate the cosine similarity you have to normalize your vectors first (L2 or euclidean norm).
+We recommend to store only the normalized vector together with its normalization factor in the index, because the 
+original vector can be calculated from both at any time.
 
 
 ## General
@@ -15,6 +16,8 @@ which was inspired from [this vector scoring plugin](https://github.com/MLnick/e
 
 ## Elasticsearch version
 The plugin is currently designed for Elasticsearch 7.2.0.
+Since Elasticsearch 7.0.0 scores produced by a script_score function must be non-negative. To meet this requirement, 
+all negative scores are truncated to zero.
 
 
 ## Maven configuration
@@ -91,7 +94,7 @@ For querying the most similar top-10 documents use this POST message on your ES 
 }
 ```
 
-The example above shows a vector of 10 dimensions,
+The example above shows a vector of 10 dimensions.
 * Parameters:
    - `field`: The field containing the vector.
    - `vector`: The vector to compare to.
