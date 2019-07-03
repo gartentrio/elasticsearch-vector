@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.DocValuesFieldExistsQuery;
@@ -149,12 +150,16 @@ public class VectorFieldMapper extends BinaryFieldMapper {
             value = context.parser().floatValue();
         }
 		if (value != null) {
-			VectorField field = (VectorField) context.doc().getByKey(fieldType().name());
+			String name = fieldType().name();
+			VectorField field = (VectorField) context.doc().getByKey(name);
 			if (field == null) {
-				field = new VectorField(fieldType().name());
-				context.doc().addWithKey(fieldType().name(), field);
+				field = new VectorField(name);
+				context.doc().addWithKey(name, field);
 			}
 			field.addFloat(value);
+			if (fieldType().stored()) {
+				context.doc().add(new StoredField(name, value));
+			}
 		}
 	}
 
