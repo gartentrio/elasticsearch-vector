@@ -56,11 +56,13 @@ public class PluginTest {
         // create test index
         String mappingJson = "{\n" +
                 "  \"mappings\": {\n" +
+        		"    \"_source\": { \"enabled\": false }, \n" +
                 "    \"properties\": {\n" +
-                "      \"vector\": {\n" +
-                "        \"type\": \"vector\"\n" +
+                "      \"image_vector\": {\n" +
+                "        \"type\": \"vector\",\n" +
+                "        \"store\": true\n" +
                 "      },\n" +
-                "      \"job_id\": {\n" +
+                "      \"image_id\": {\n" +
                 "        \"type\": \"long\"\n" +
                 "      }\n" +
                 "    }\n" +
@@ -73,22 +75,22 @@ public class PluginTest {
 
     @Test
     public void test() throws Exception {
-        final ObjectMapper mapper = new ObjectMapper();
-        final TestObject[] objs = {
-    		new TestObject(0, new float[] {0.26726124f, 0.53452248f, 0.80178373f}),
-            new TestObject(1, new float[] {0.80178373f, 0.53452248f, 0.26726124f})};
+        ObjectMapper mapper = new ObjectMapper();
+        TestImage[] imgs = {
+    		new TestImage(0, new float[] {0.26726124f, 0.53452248f, 0.80178373f}),
+            new TestImage(1, new float[] {0.80178373f, 0.53452248f, 0.26726124f})};
 
-        for (int i = 0; i < objs.length; i++) {
-        	TestObject t = objs[i];
-            final String json = mapper.writeValueAsString(t);
+        for (int i = 0; i < imgs.length; i++) {
+        	TestImage t = imgs[i];
+            String json = mapper.writeValueAsString(t);
             System.out.println(json);
-            Request indexRequest = new Request("POST", "/test/_doc/" + t.jobId);
+            Request indexRequest = new Request("POST", "/test/_doc/" + t.imageId);
             indexRequest.addParameter("refresh", "true");
             indexRequest.setJsonEntity(json);
-            final Response put = esClient.performRequest(indexRequest);
+            Response put = esClient.performRequest(indexRequest);
             System.out.println(put);
             System.out.println(EntityUtils.toString(put.getEntity()));
-            final int statusCode = put.getStatusLine().getStatusCode();
+            int statusCode = put.getStatusLine().getStatusCode();
             Assert.assertTrue(statusCode == 200 || statusCode == 201);
         }
 
@@ -102,7 +104,7 @@ public class PluginTest {
                 "          \"lang\": \"vector_score\"," +
                 "          \"source\": \"vector_score\"," +
                 "          \"params\": {" +
-                "            \"field\": \"vector\"," +
+                "            \"field\": \"image_vector\"," +
                 "            \"vector\": [" +
                 "               0.26726124, 0.53452248, 0.80178373" +
                 "             ]" +
@@ -114,13 +116,14 @@ public class PluginTest {
                 "  \"size\": 100" +
                 "}";
         Request searchRequest = new Request("POST", "/test/_search");
+        searchRequest.addParameter("stored_fields", "image_vector");
         searchRequest.setJsonEntity(body);
         Response res = esClient.performRequest(searchRequest);
         System.out.println(res);
         String resBody = EntityUtils.toString(res.getEntity());
         System.out.println(resBody);
         Assert.assertEquals("search should return status code 200", 200, res.getStatusLine().getStatusCode());
-        Assert.assertTrue(String.format("There should be %d documents in the search response", objs.length), resBody.contains("\"hits\":{\"total\":{\"value\":" + objs.length));
+        Assert.assertTrue(String.format("There should be %d documents in the search response", imgs.length), resBody.contains("\"hits\":{\"total\":{\"value\":" + imgs.length));
         // Testing Scores
         ArrayNode hitsJson = (ArrayNode)mapper.readTree(resBody).get("hits").get("hits");
         Assert.assertEquals(1.0, hitsJson.get(0).get("_score").asDouble(), 0);

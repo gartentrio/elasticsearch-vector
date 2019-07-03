@@ -26,20 +26,20 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
  * Created by Lior Knaany on 4/7/18.
  */
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class TestObject {
-    int jobId;
-    float[] vector;
+public class TestImage {
+    int imageId;
+    float[] imageVector;
 
-    public int getJobId() {
-        return jobId;
+    public int getImageId() {
+        return imageId;
     }
 
-    public float[] getVector() {
-        return vector;
+    public float[] getImageVector() {
+        return imageVector;
     }
 
-    public TestObject(int jobId, float[] vector) {
-        this.jobId = jobId;
-        this.vector = vector;
+    public TestImage(int imageId, float[] imageVector) {
+        this.imageId = imageId;
+        this.imageVector = imageVector;
     }
 }
