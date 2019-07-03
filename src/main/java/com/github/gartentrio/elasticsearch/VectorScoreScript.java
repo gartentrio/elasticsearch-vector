@@ -42,7 +42,7 @@ public final class VectorScoreScript extends ScoreScript {
 
 		String field = (String) params.get("field");
 		if (field == null) {
-			throw new IllegalArgumentException("vector_score script requires field input");
+			throw new IllegalArgumentException("Missing or empty parameter [field]");
 		}
 		List<Double> vectorList = (List<Double>) params.get("vector");
 		if (vectorList != null) {
@@ -50,8 +50,8 @@ public final class VectorScoreScript extends ScoreScript {
 			for (int i = 0; i < vector.length; i++) {
 				vector[i] = vectorList.get(i).floatValue();
 			}
-		} else {            	
-			throw new IllegalArgumentException("Must have at 'vector' as a parameter");
+		} else {
+			throw new IllegalArgumentException("Missing or empty parameter [vector]");
 		}
 		values = leafContext.reader().getBinaryDocValues(field);
 	}
