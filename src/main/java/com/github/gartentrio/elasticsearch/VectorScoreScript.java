@@ -26,15 +26,14 @@ import java.util.Map;
 
 import org.apache.lucene.index.BinaryDocValues;
 import org.apache.lucene.index.LeafReaderContext;
-import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.script.ScoreScript;
 import org.elasticsearch.search.lookup.SearchLookup;
 
 public final class VectorScoreScript extends ScoreScript {
 
-	private BinaryDocValues values;
-	private float[] vector;
+	private final BinaryDocValues values;
+	private final float[] vector;
 	private int doc;
 
 	@SuppressWarnings("unchecked")
@@ -67,17 +66,24 @@ public final class VectorScoreScript extends ScoreScript {
 		try {
 			if (values != null && values.advanceExact(doc)) {
 				BytesRef data = values.binaryValue();
-				ByteArrayDataInput buf = new ByteArrayDataInput(data.bytes, data.offset, data.length);
-				float score = 0;
-				for (int i = 0; i < vector.length; i++) {
-					score += Float.intBitsToFloat(buf.readInt()) * vector[i];
-				}
-				return Math.max(0, score);
+				return dot(vector, data.bytes, data.offset);
 			} else {
 				return 0.0;
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-	}      
+	}
+	
+	private static final float dot(final float[] vector, final byte[] data, final int offset) {
+		float sum = 0;
+		for (int i=0, pos=offset; i < vector.length;) {
+			sum += vector[i++] * Float.intBitsToFloat(
+					((data[pos++] & 0xFF) << 24) | 
+					((data[pos++] & 0xFF) << 16) | 
+					((data[pos++] & 0xFF) <<  8) | 
+					(data[pos++] & 0xFF));
+		}
+		return Math.max(0, sum);
+	}	
 }
